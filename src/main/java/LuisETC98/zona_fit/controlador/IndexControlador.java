@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
+import jakarta.validation.ConstraintViolationException;
 import org.primefaces.PrimeFaces;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,26 +38,40 @@ public class IndexControlador {
         this.clienteSeleccionado = new Cliente();
     }
 
+
     public void guardarCliente(){
-        //Agregar
-        if(this.clienteSeleccionado.getId() == null){
-            this.clienteServicio.guardarCliente(this.clienteSeleccionado);
-            this.clientes.add(this.clienteSeleccionado);
+        try {
+            //Agregar
+            if(this.clienteSeleccionado.getId() == null){
+                this.clienteServicio.guardarCliente(this.clienteSeleccionado);
+                this.clientes.add(this.clienteSeleccionado);
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage("Cliente Agregado"));
+            }
+            else { //Modificar registro
+                this.clienteServicio.guardarCliente(this.clienteSeleccionado);
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage("Cliente Actualizado"));
+            }
+            //Ocultar la ventana modal
+            PrimeFaces.current().executeScript("PF('ventanaModalCliente').hide()");
+
+            //Actualizar la tabla y mensajes usando ajax
+            PrimeFaces.current().ajax().update("forma-clientes:mensajes",
+                    "forma-clientes:clientes-tabla");
+
+            //Reset del objeto cliente seleccionado
+            this.clienteSeleccionado = null;
+
+        } catch(ConstraintViolationException e) {
+            //Se muestra el siguiente mensaje de error en la interfaz
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage("Cliente Agregado"));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error de Validación", "Revise los datos del formulario"));
+            //Se actualiza solo el componente de mensajes en la vista
+            PrimeFaces.current().ajax().update("forma-clientes:mensajes");
+            /*Nota: No se limpia 'clienteSeleccionado' ni cerramos la ventana modal
+             para que el usuario pueda corregir sus datos sin volver a escribir todo.*/
         }
-        else{ //Modificar registro
-            this.clienteServicio.guardarCliente(this.clienteSeleccionado);
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage("Cliente Actualizado"));
-        }
-        //Ocultar la ventana modal
-        PrimeFaces.current().executeScript("PF('ventanaModalCliente').hide()");
-        //Actualizar la tabla usando ajax
-        PrimeFaces.current().ajax().update("forma-clientes: mensajes",
-                "forma-clientes:clientes-tabla");
-        //Resest del objeto cliente seleccionado
-        this.clienteSeleccionado = null;
     }
 
     public void eliminarCliente(){

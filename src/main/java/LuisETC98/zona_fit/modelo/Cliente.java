@@ -2,6 +2,11 @@ package LuisETC98.zona_fit.modelo;
 
 import jakarta.persistence.*;
 
+// Importaciones necesarias:
+ import jakarta.validation.constraints.Email;
+ import jakarta.validation.constraints.NotBlank;
+ import jakarta.validation.constraints.NotNull;
+
 
 @Entity //Anotación que permie crear una tabla en base de datos relacional basada en esta clase
 @Table(name = "cliente") //Permite especificar el nombre de la tabla
@@ -10,11 +15,21 @@ public class Cliente {
     @Id //Convierte variable id en llave primaria de tabla
     @GeneratedValue(strategy = GenerationType.IDENTITY) //Asigna automáticamente id a nuevo objeto creado (registro en tabla) y lo autoincrementa
     private Integer id;
-    //Atributos (columnas)
+
+    //Atributos (columnas) con validaciones Jakarta Bean Validation
+    @NotBlank(message = "Ingresa un nombre")
     private String nombre;
+
+    @NotBlank(message = "Ingresa un apellido")
     private String apellido;
+
+    @NotBlank(message = "Ingresa un email")
+    @Email(message = "Formato de correo no válido")
     private String email;
+
+    @NotNull(message = "Ingresa una membresía")
     private Integer membresia;
+
 
     //Constructor vacío
     public Cliente(){
